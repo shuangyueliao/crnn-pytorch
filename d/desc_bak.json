@@ -1,0 +1,23 @@
+/*
+{
+"abc": "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+"train": [
+{
+"text": "AVAILABLE",
+"name": "data/demo.png"
+}
+],
+"test": [
+{
+"text": "AVAILABLE",
+"name": "data/demo.png"
+}
+]
+}*/
+{
+"abc": "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+"train": [
+],
+"test": [
+]
+}
