@@ -26,17 +26,18 @@ from test import test
 @click.option('--abc', type=str, default=string.digits+string.ascii_uppercase, help='Alphabet')
 @click.option('--seq-proj', type=str, default="10x20", help='Projection of sequence')
 @click.option('--backend', type=str, default="resnet18", help='Backend network')
-@click.option('--snapshot', type=str, default=None, help='Pre-trained weights')
+# @click.option('--snapshot', type=str, default=None, help='Pre-trained weights')
+@click.option('--snapshot', type=str, default='e/crnn_resnet18_0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_best1.0', help='Pre-trained weights')
 @click.option('--input-size', type=str, default="320x32", help='Input size')
 @click.option('--base-lr', type=float, default=1e-3, help='Base learning rate')
 @click.option('--step-size', type=int, default=500, help='Step size')
 @click.option('--max-iter', type=int, default=6000, help='Max iterations')
 @click.option('--batch-size', type=int, default=256, help='Batch size')
-@click.option('--output-dir', type=str, default='e', help='Path for snapshot')
+@click.option('--predsput-dir', type=str, default='e', help='Path for snapshot')
 @click.option('--test-epoch', type=int, default=1, help='Test epoch')
 @click.option('--test-init', type=bool, default=True, help='Test initialization')
 @click.option('--gpu', type=str, default='0', help='List of GPUs for parallel training, e.g. 0,1,2,3')
-def main(data_path, abc, seq_proj, backend, snapshot, input_size, base_lr, step_size, max_iter, batch_size, output_dir, test_epoch, test_init, gpu):
+def main(data_path, abc, seq_proj, backend, snapshot, input_size, base_lr, step_size, max_iter, batch_size, predsput_dir, test_epoch, test_init, gpu):
     os.environ["CUDA_VISIBLE_DEVICES"] = gpu
     cuda = True if gpu is not '' else False
 
@@ -53,6 +54,8 @@ def main(data_path, abc, seq_proj, backend, snapshot, input_size, base_lr, step_
         data = TestDataset(transform=transform, abc=abc)
     seq_proj = [int(x) for x in seq_proj.split('x')]
     net = load_model(data.get_abc(), seq_proj, backend, snapshot, cuda)
+
+    print(net)
     optimizer = optim.Adam(net.parameters(), lr = base_lr, weight_decay=0.0001)
     lr_scheduler = StepLR(optimizer, step_size=step_size, max_iter=max_iter)
     loss_function = CTCLoss()
@@ -69,8 +72,8 @@ def main(data_path, abc, seq_proj, backend, snapshot, input_size, base_lr, step_
             net = net.train()
             data.set_mode("train")
             if acc > acc_best_test:
-                if output_dir is not None:
-                    torch.save(net.state_dict(), os.path.join(output_dir, "crnn_" + backend + "_" + str(data.get_abc()) + "_best"))
+                if predsput_dir is not None:
+                    torch.save(net.state_dict(), os.path.join(predsput_dir, "crnn_" + backend + "_" + str(data.get_abc()) + "_best"))
                 acc_best_test = acc
             print("test acc: {}\tacc_best: {}; avg_ed: {}".format(acc, acc_best_test, avg_ed))
 
@@ -84,7 +87,7 @@ def main(data_path, abc, seq_proj, backend, snapshot, input_size, base_lr, step_
                 continue
             optimizer.zero_grad()
             imgs = Variable(sample["img"])
-            if True:
+            if False:
                 img = imgs[0].permute(1, 2, 0).cpu().data.numpy().astype(np.uint8)
                 cv2.imshow("img", img)
                 key = chr(cv2.waitKey() & 255)
@@ -110,8 +113,8 @@ def main(data_path, abc, seq_proj, backend, snapshot, input_size, base_lr, step_
             if acc > acc_best_train:
                 acc_best_train = acc
             print("======================train acc: {}\tacc_best: {}; avg_ed: {}".format(acc, acc_best_train, avg_ed))
-        if output_dir is not None:
-            # torch.save(net.state_dict(), os.path.join(output_dir, "crnn_"+str(epoch_count)+"_last"))
+        if predsput_dir is not None:
+            # torch.save(net.state_dict(), os.path.join(predsput_dir, "crnn_"+str(epoch_count)+"_last"))
             pass
         epoch_count += 1
 

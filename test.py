@@ -36,9 +36,9 @@ def test(net, data, abc, cuda, visualize, batch_size=256):
         key = ''
         for i in range(len(out)):
             gts = ''.join(abc[c] for c in gt[pos:pos+lens[i]])
-            print('---------------------------------------------------------')
-            print(out[i])
-            print(gts)
+            #print('---------------------------------------------------------')
+            #print(out[i])
+            #print(gts)
             pos += lens[i]
             if gts == out[i]:
                 tp += 1
@@ -67,7 +67,7 @@ def test(net, data, abc, cuda, visualize, batch_size=256):
 @click.option('--abc', type=str, default=string.digits+string.ascii_uppercase, help='Alphabet')
 @click.option('--seq-proj', type=str, default="10x20", help='Projection of sequence')
 @click.option('--backend', type=str, default="resnet18", help='Backend network')
-@click.option('--snapshot', type=str, default='e/crnn_resnet18_0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_best1.0', help='Pre-trained weights')
+@click.option('--snapshot', type=str, default='e/crnn_resnet18_0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_best', help='Pre-trained weights')
 @click.option('--input-size', type=str, default="320x32", help='Input size')
 @click.option('--gpu', type=str, default='0', help='List of GPUs for parallel training, e.g. 0,1,2,3')
 @click.option('--visualize', type=bool, default=False, help='Visualize output')
@@ -77,7 +77,6 @@ def main(data_path, abc, seq_proj, backend, snapshot, input_size, gpu, visualize
 
     input_size = [int(x) for x in input_size.split('x')]
     transform = Compose([
-        Rotation(),
         Resize(size=(input_size[0], input_size[1]))
     ])
     if data_path is not None:
@@ -86,6 +85,7 @@ def main(data_path, abc, seq_proj, backend, snapshot, input_size, gpu, visualize
         data = TestDataset(transform=transform, abc=abc)
     seq_proj = [int(x) for x in seq_proj.split('x')]
     net = load_model(data.get_abc(), seq_proj, backend, snapshot, cuda).eval()
+    print(net)
     acc, avg_ed = test(net, data, data.get_abc(), cuda, visualize)
     print("Accuracy: {}".format(acc))
     print("Edit distance: {}".format(avg_ed))
